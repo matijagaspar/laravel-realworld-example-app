@@ -32,7 +32,8 @@ class AuthenticateWithJWT extends BaseMiddleware
     public function handle($request, Closure $next, $optional = null)
     {
         $this->auth->setRequest($request);
-
+        
+        //return $this->respondError('JWT error: Token is absent'.$this->auth->parseToken('token'));
         try {
             if (! $user = $this->auth->parseToken('token')->authenticate()) {
                 return $this->respondError('JWT error: User not found');

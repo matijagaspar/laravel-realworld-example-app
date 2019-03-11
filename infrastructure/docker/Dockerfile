@@ -23,22 +23,19 @@ FROM node:8.11 as frontend
 RUN mkdir -p /app/public
 
 COPY package.json webpack.mix.js yarn.lock /app/
-COPY resources/assets/ /app/resources/assets/
 
 WORKDIR /app
+#install before source copying means yarn install is not run every change on frontend speeding up the build by 60sec
+RUN yarn install
 
-RUN yarn install && yarn production
+COPY resources/assets/ /app/resources/assets/
+RUN yarn production
 
 
 #
 # Application
 #
 FROM php:7.3.3-apache-stretch
-
-#RUN curl -o /usr/bin/docker-php-pecl-install -L https://raw.githubusercontent.com/helderco/docker-php/master/template/bin/docker-php-pecl-install \
-    #&& chmod +x /usr/bin/docker-php-pecl-install
-
-
 
 RUN apt-get update && apt-get install -y \
         libmcrypt-dev \
@@ -47,7 +44,7 @@ RUN apt-get update && apt-get install -y \
         # deps for pdo_mysql
         mysql-client
 
-RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 RUN pecl install mcrypt-1.0.2 zip
 
@@ -59,23 +56,30 @@ RUN docker-php-ext-enable mcrypt
 #RUN docker-php-ext-install zip
 #RUN docker-php-ext-install xml 
 
-#RUN docker-php-ext-install xmlrpc
-#RUN docker-php-ext-install pdo_mysql
+RUN docker-php-ext-install xmlrpc \
+                           pdo_mysql
 
-RUN docker-php-ext-install \                            
-                             tokenizer \
-                             mbstring \
-                             pdo \
-                             xml \
-                             xmlrpc \
-                             zip \
-                             pdo_mysql
+# RUN docker-php-ext-install \                            
+#                              tokenizer \
+#                              mbstring \
+#                              pdo \
+#                              xml \
+#                              xmlrpc \
+#                              zip \
+#                              pdo_mysql
 
 #RUN  apt-get purge -y --auto-remove libxml2-dev libzip-dev libmcrypt-dev
 
 # Use the default production configuration
+RUN mkdir -p /var/www/html
 
 
+
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+#change to www-data so all fil
 #docker-php-ext-install
 COPY . /var/www/html
 COPY --from=vendor /app/vendor/ /var/www/html/vendor/
@@ -85,15 +89,14 @@ COPY --from=frontend /app/mix-manifest.json /var/www/html/mix-manifest.json
 
 COPY .env.example /var/www/html/.env
 
+RUN chown -R www-data:www-data /var/www/html/ 
+
 #COPY ./infrastructure/docker/apache/vhost.conf /etc/apache2/sites-available/000-default.conf
 
-RUN chown -R www-data:www-data /var/www/html/ && a2enmod rewrite
+RUN a2enmod rewrite
 
-RUN service apache2 restart
+#RUN service apache2 restart
 
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+WORKDIR /var/www/html
 
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-
-CMD ["apache2-foreground"]
+CMD php artisan migrate && apache2-foreground
