@@ -1,0 +1,56 @@
+version: '3'
+services:
+
+  #PHP Service
+  app:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+    image: myveryown-laravel-example:latest
+    container_name: myveryown-laravel-example
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "8888:80"
+      - "8883:8000"
+    environment:
+      APP_KEY: base64:ejYVUmyFYVXKtelpU79o2e1MgoVLZoTK/mRlq2eesXQ=
+      DB_DATABASE: laravel
+      DB_USERNAME: laravel
+      DB_PASSWORD: secret
+      DB_HOST: db
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    volumes:
+     - ./:/var/myveryown
+    working_dir: /var/www
+    networks:
+      - app-network
+
+  #MySQL Service
+  db:
+    image: mysql:5.7.22
+    container_name: db
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_ROOT_PASSWORD: your_mysql_root_password
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+     - data:/var/lib/mysql
+    networks:
+      - app-network
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
+volumes:
+  data:
+    driver: "local"
