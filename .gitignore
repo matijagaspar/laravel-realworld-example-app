@@ -29,3 +29,6 @@ _ide_helper.php
 #System Files
 .DS_Store
 Thumbs.db
+/.blackbox/pubring.gpg~
+/.blackbox/pubring.kbx~
+/.blackbox/secring.gpg
