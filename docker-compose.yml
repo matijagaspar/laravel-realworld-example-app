@@ -10,6 +10,8 @@ services:
     container_name: myveryown-laravel-example
     restart: unless-stopped
     tty: true
+    depends_on:
+      - db
     ports:
       - "8888:80"
       - "8883:8000"
@@ -21,9 +23,6 @@ services:
       DB_HOST: db
       SERVICE_NAME: app
       SERVICE_TAGS: dev
-    volumes:
-     - ./:/var/myveryown
-    working_dir: /var/www
     networks:
       - app-network
 
