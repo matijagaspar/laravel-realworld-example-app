@@ -32,3 +32,5 @@ Thumbs.db
 /.blackbox/pubring.gpg~
 /.blackbox/pubring.kbx~
 /.blackbox/secring.gpg
+/.blackbox/S.*
+/infrastructure/kubes/app/testsecret
