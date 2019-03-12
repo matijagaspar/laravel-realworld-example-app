@@ -3,20 +3,18 @@ version: 0.2
 env:
   variables:
     DOCKER_IMAGE: devops-laravel-example
-    ECR_REPO: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$DOCKER_IMAGE
-    EKS_KUBECTL_ROLE_ARN: arn:aws:iam::$AWS_ACCOUNT_ID:role/CodeBuildKubectlRole
     EKS_CLUSTER_NAME: devops-test-cluster
 phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
-      - docker pull $ECR_REPO:latest || true
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...   
-      - docker build --cache-from $ECR_REPO:latest -t $DOCKER_IMAGE:latest -f infrastructure/docker/Dockerfile .
+      - docker build -t $DOCKER_IMAGE:latest -f infrastructure/docker/Dockerfile .
+      - export ECR_REPO="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$DOCKER_IMAGE"
       - docker tag $DOCKER_IMAGE:latest $ECR_REPO:latest
       - docker tag $DOCKER_IMAGE:latest $ECR_REPO:$CODEBUILD_RESOLVED_SOURCE_VERSION
       
@@ -24,10 +22,11 @@ phases:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker image...
+      - echo $ECR_REPO
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$DOCKER_IMAGE:latest
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$DOCKER_IMAGE:$CODEBUILD_RESOLVED_SOURCE_VERSION
       
-      - export CREDENTIALS=$(aws sts assume-role --role-arn $EKS_KUBECTL_ROLE_ARN --role-session-name codebuild-kubectl --duration-seconds 900)
+      - export CREDENTIALS=$(aws sts assume-role --role-arn arn:aws:iam::AWS_ACCOUNT_ID:role/CodeBuildKubectlRole --role-session-name codebuild-kubectl --duration-seconds 900)
       - export AWS_ACCESS_KEY_ID="$(echo ${CREDENTIALS} | jq -r '.Credentials.AccessKeyId')"
       - export AWS_SECRET_ACCESS_KEY="$(echo ${CREDENTIALS} | jq -r '.Credentials.SecretAccessKey')"
       - export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
