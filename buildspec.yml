@@ -45,4 +45,4 @@ phases:
       - echo $AWS_SESSION_TOKEN
       - export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
       - aws eks update-kubeconfig --name devops-test-cluster
-      - kubectl --record deployment.apps/laravel-example-app set image deployment.v1.apps/laravel-example-app devops-laravel-example=$ECR_REPO:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - kubectl -n laravel-example --record deployment.apps/laravel-example-app set image deployment.v1.apps/laravel-example-app devops-laravel-example=$ECR_REPO:$CODEBUILD_RESOLVED_SOURCE_VERSION
