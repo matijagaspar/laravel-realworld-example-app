@@ -33,7 +33,8 @@ phases:
       - docker push $ECR_REPO:latest
       - docker push $ECR_REPO:$CODEBUILD_RESOLVED_SOURCE_VERSION
       - export CREDENTIALS=$(aws sts assume-role --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/CodeBuildKubectlRole --role-session-name codebuild-kubectl --duration-seconds 900)
-      - echo $CREDENTIALS
+      - echo $(aws sts assume-role --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/CodeBuildKubectlRole --role-session-name codebuild-kubectl --duration-seconds 900)
+      - echo "aws sts assume-role --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/CodeBuildKubectlRole --role-session-name codebuild-kubectl --duration-seconds 900"
       - export AWS_ACCESS_KEY_ID="$(echo ${CREDENTIALS} | jq -r '.Credentials.AccessKeyId')"
       - echo $AWS_ACCESS_KEY_ID
       - export AWS_SECRET_ACCESS_KEY="$(echo ${CREDENTIALS} | jq -r '.Credentials.SecretAccessKey')"
