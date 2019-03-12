@@ -1,0 +1,60 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: "laravel-example-app"
+  namespace: "laravel-example"
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: "laravel-example-app"
+    spec:
+      containers:
+      - image: 460108603965.dkr.ecr.eu-central-1.amazonaws.com/devops-laravel-example:latest
+        imagePullPolicy: Always
+        name: "devops-laravel-example"
+        ports:
+        - containerPort: 80
+        env:
+          - name: APP_KEY
+            valueFrom:
+              secretKeyRef:
+                  name: laravel-app-secret
+                  key: app_key
+          - name: DB_DATABASE
+            value: laravel_app
+          - name: DB_HOST
+            valueFrom:
+              secretKeyRef:
+                  name: laravel-app-secret
+                  key: db_host
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                  name: laravel-app-secret
+                  key: db_user
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                  name: laravel-app-secret
+                  key: db_pass
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: 0.5
+          requests:
+            memory: 256Mi  
+            cpu: 0.2
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 35
+          timeoutSeconds: 10

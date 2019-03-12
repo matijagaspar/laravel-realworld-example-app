@@ -50,25 +50,10 @@ RUN pecl install mcrypt-1.0.2 zip
 
 RUN docker-php-ext-enable mcrypt
 
-#RUN docker-php-ext-install tokenizer 
-#RUN docker-php-ext-install mbstring 
-#RUN docker-php-ext-install pdo 
-#RUN docker-php-ext-install zip
-#RUN docker-php-ext-install xml 
-
 RUN docker-php-ext-install xmlrpc \
                            pdo_mysql
 
-# RUN docker-php-ext-install \                            
-#                              tokenizer \
-#                              mbstring \
-#                              pdo \
-#                              xml \
-#                              xmlrpc \
-#                              zip \
-#                              pdo_mysql
-
-#RUN  apt-get purge -y --auto-remove libxml2-dev libzip-dev libmcrypt-dev
+RUN  apt-get purge -y --auto-remove libxml2-dev libzip-dev
 
 # Use the default production configuration
 RUN mkdir -p /var/www/html
@@ -79,8 +64,6 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-#change to www-data so all fil
-#docker-php-ext-install
 COPY . /var/www/html
 COPY --from=vendor /app/vendor/ /var/www/html/vendor/
 COPY --from=frontend /app/public/js/ /var/www/html/public/js/
@@ -91,11 +74,7 @@ COPY .env.example /var/www/html/.env
 
 RUN chown -R www-data:www-data /var/www/html/ 
 
-#COPY ./infrastructure/docker/apache/vhost.conf /etc/apache2/sites-available/000-default.conf
-
 RUN a2enmod rewrite
-
-#RUN service apache2 restart
 
 WORKDIR /var/www/html
 
