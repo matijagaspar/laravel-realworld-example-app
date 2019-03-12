@@ -1,1 +1,2 @@
+infrastructure/kubes/app/secret.yaml
 infrastructure/kubes/app/testsecret
