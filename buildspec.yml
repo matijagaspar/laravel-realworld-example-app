@@ -11,7 +11,9 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - echo Building the Docker image...     
+      - echo Building the Docker image...   
+      - echo $CODEBUILD_SOURCE_VERSION 
+      - echo $CODEBUILD_RESOLVED_SOURCE_VERSION
       - docker build -t $DOCKER_IMAGE -f infrastructure/docker/Dockerfile .
       - docker tag $DOCKER_IMAGE $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$DOCKER_IMAGE
   post_build:
