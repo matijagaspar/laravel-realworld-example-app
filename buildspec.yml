@@ -32,11 +32,14 @@ phases:
       - echo $ECR_REPO
       - docker push $ECR_REPO:latest
       - docker push $ECR_REPO:$CODEBUILD_RESOLVED_SOURCE_VERSION
-      
       - export CREDENTIALS=$(aws sts assume-role --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/CodeBuildKubectlRole --role-session-name codebuild-kubectl --duration-seconds 900)
+      - echo $CREDENTIALS
       - export AWS_ACCESS_KEY_ID="$(echo ${CREDENTIALS} | jq -r '.Credentials.AccessKeyId')"
+      - echo $AWS_ACCESS_KEY_ID
       - export AWS_SECRET_ACCESS_KEY="$(echo ${CREDENTIALS} | jq -r '.Credentials.SecretAccessKey')"
+      - echo $AWS_SECRET_ACCESS_KEY
       - export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
+      - echo $AWS_SESSION_TOKEN
       - export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
-      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME
+      - aws eks update-kubeconfig --name devops-test-cluster
       - kubectl --record deployment.apps/laravel-example-app set image deployment.v1.apps/laravel-example-app devops-laravel-example=$ECR_REPO:$CODEBUILD_RESOLVED_SOURCE_VERSION
